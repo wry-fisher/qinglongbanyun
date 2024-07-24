@@ -17,7 +17,7 @@ import urllib
 import easyocr
 import json
 debug=0
-accounts = '19116317861#1234567890&15857322236#123456'
+accounts = ''
 def jm(password):
     public_key_base64 = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQD6XO7e9YeAOs+cFqwa7ETJ+WXizPqQeXv68i5vqw9pFREsrqiBTRcg7wB0RIp3rJkDpaeVJLsZqYm5TW7FWx/iOiXFc+zCPvaKZric2dXCw27EvlH5rq+zwIPDAJHGAfnn1nmQH7wR3PCatEIb8pz5GFlTHMlluw4ZYmnOwg+thwIDAQAB"
     public_key_der = base64.b64decode(public_key_base64)
@@ -257,7 +257,7 @@ def get_article(id):
                 continue
             else:
                 id = task['link'].split('&')[0].split('?id=')[1]
-                tenanid = task['link'].split('tenantId=')[1]
+                tenanid = task['link'].split('tenantId=')[1].split('&')[0]
                 titile = task['name']
                 articleid = task['id']
                 read = task['read']
@@ -484,7 +484,7 @@ def get_lottery(lottery):
     }
     response = requests.post(url, json=payload, headers=headers).json()
     if response['code'] == 0:
-        print(f"抽奖结果：{response['data']['tip_text']}")
+        print(f"抽奖结果：{response['data']['title']}")
     elif response['code'] == 10000:
         return response['message']
     else:
@@ -509,15 +509,15 @@ def AES_Encrypt(dict, key):
     aes = AES.new(key.encode('utf-8'), AES.MODE_ECB)
     pad_pkcs7 = pad(aes_str.encode('utf-8'), AES.block_size, style='pkcs7')  
     encrypt_aes = aes.encrypt(pad_pkcs7)
-    encrypted_text = str(base64.encodebytes(encrypt_aes), encoding='utf-8')  
+    encrypted_text = str(base64.encodebytes(encrypt_aes), encoding='utf-8').replace('\n', '')
     return encrypted_text
-def check(lottery,point,token):
+def check(lottery,point,cap_token):
     url = "https://op-api.cloud.jinhua.com.cn/api/captcha/check"
 
     payload = {
     "activity_id": lottery,
     "module": "bigWheel",
-    "cap_token": token,
+    "cap_token": cap_token,
     "point": point
     }
     times = timestamp()
@@ -591,7 +591,7 @@ def captcha(lotteryid):
         jigsawImageUrl = response['data']['jigsawImageUrl']
         originalImageUrl = response['data']['originalImageUrl']
         secretKey = response['data']['secretKey']
-        token = response['data']['token']
+        cap_token = response['data']['token']
         print(f"滑块链接是:{jigsawImageUrl}")
         print(f"背景链接是:{originalImageUrl}")
         print(f"加密密钥是:{secretKey}")
@@ -606,13 +606,50 @@ def captcha(lotteryid):
                    }
             point = AES_Encrypt(x_dict,secretKey)
             print(f"AES加密结果是:{point}")
-            check(lotteryid,point,token)
+            check(lotteryid,point,cap_token)
         else:
             print("验证码识别失败")
     else:
         print('获取验证码错误')
         print(response)
+def records():
 
+    url = "https://op-api.cloud.jinhua.com.cn/api/lotterybigwheel/_ac_lottery_records"
+
+    payload = {
+    "id": lotteryid,
+    "module": "study"
+    }
+    times = timestamp()
+    nonce = randomcode()
+    sign = getApiSign(deviceid, nonce, times, accountid, accesstoken, payload, key)
+    headers = {
+    'User-Agent': "Mozilla/5.0 (Linux; Android 9; MI 9 Build/PQ3B.190801.06131105; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Mobile Safari/537.36;xsb_wuyi;xsb_wuyi;3.1.0;native_app;6.6.1",
+    'Accept': "application/json, text/plain, */*",
+    'Accept-Encoding': "gzip, deflate",
+    'access-type': "app",
+    'access-module': "study",
+    'access-device-id': deviceid,
+    'access-auth-id': accountid,
+    'access-api-signature': sign,
+    'access-nonce-str': nonce,
+    'authorization': "Bearer "+token,
+    'access-app-id': "vKmnytOp9GrPa7kLbWTx",
+    'access-timestamp': times,
+    'access-api-token': accesstoken,
+    'content-type': "application/json; charset=UTF-8",
+    'origin': "https://op-h5.cloud.jinhua.com.cn",
+    'x-requested-with': "com.shixian.wuyi",
+    'sec-fetch-site': "same-site",
+    'sec-fetch-mode': "cors",
+    'sec-fetch-dest': "empty",
+    'referer': "https://op-h5.cloud.jinhua.com.cn/",
+    'accept-language': "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7"
+    }
+
+    response = requests.post(url, data=payload, headers=headers)
+
+    print(response.text)
 
 if __name__ == '__main__':
     if not accounts:
