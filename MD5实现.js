@@ -60,4 +60,4 @@ function md5(inputString) {
 
 }    
     module.exports = { md5 };
-console.log(md5("action=qiandao&appkey=1f70a57fdf4061a7&auth=7adac21a4c74543141bf8e35e4877616&username=c0749b03aec5e331&eBRaFLkuJ5"))
+console.log(md5("111"))
