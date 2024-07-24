@@ -19,7 +19,7 @@ import easyocr
 import json
 import hmac
 debug=0
-accounts = '19116317861#123456#0f3yws000hoBvS1Off100zWtNr1yws0z&15857322236#1234567890'
+accounts = ''
 def AES_Encrypt(dict, key):
     aes_str = json.dumps(dict,separators=(',', ':'),indent=None)
     aes = AES.new(key.encode('utf-8'), AES.MODE_ECB)
