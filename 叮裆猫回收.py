@@ -37,7 +37,9 @@ class yyf():
   'referer': "https://servicewechat.com/wx7f5bc6f204abc629/15/page-frame.html",
   'accept-language': "zh-CN,zh;q=0.9"
 }
-
+    def index(self):
+        url = "https://xdj.api.5tan.com/api/index/index"
+        response = requests.get(url, headers=self.headers)
     def signin(self):
         url = "https://xdj.api.5tan.com/api/signin/addSignIn"
         payload = {
@@ -75,6 +77,8 @@ class yyf():
         SendMsg+=f"账号{count}提现{money}:{response}"
 
     def task(self):
+        self.index()
+        time.sleep(random.randint(1, 3))
         self.signin()
         time.sleep(random.randint(1, 3))
         self.getmoney()
